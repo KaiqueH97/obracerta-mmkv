@@ -5,11 +5,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import Login from './telas/login';
-import Home from './telas/home';
-import Projetos from './telas/projetos';
-import Calcular from './telas/calcular';
-import ProjetoDetalhes from './telas/projetodetalhes';
+import Login from './src/telas/login';
+import Home from './src/telas/home';
+import Projetos from './src/telas/projetos';
+import Calcular from './src/telas/calcular';
+import ProjetoDetalhes from './src/telas/projetodetalhes';
 
 
 function TelaTemporaria({ rota }) {
