@@ -1,35 +1,45 @@
 import React, { useState } from "react";
-import {View,Text,TextInput,TouchableOpacity,StyleSheet,Alert,ActivityIndicator} from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert } from "react-native";
+import { storage } from '../storage/storage'; // Importando a instância do MMKV
+
+// Função utilitária para os alertas funcionarem tanto no celular quanto no navegador
+const mostrarAlerta = (titulo, mensagem) => {
+  if (Platform.OS === 'web') {
+    window.alert(`${titulo}\n\n${mensagem}`);
+    return;
+  }
+  Alert.alert(titulo, mensagem);
+};
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("user@obracerta.com");
   const [senha, setSenha] = useState("obra123");
   const [carregando, setCarregando] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     if (!email.trim() || !senha) {
-      Alert.alert("Atenção", "Por favor, preencha e-mail e senha.");
+      mostrarAlerta("Atenção", "Por favor, preencha e-mail e senha.");
       return;
     }
 
     setCarregando(true);
 
     try {
-      // Aqui simulamos o tempo do login e salvamos no banco do professor (AsyncStorage)
-      setTimeout(async () => {
-        // Salva o e-mail logado no armazenamento local
-        await AsyncStorage.setItem('@usuario_email', email.trim());
+      // Mantemos o setTimeout para simular o tempo de carregamento visual
+      setTimeout(() => {
+        
+        // DEPOIS (MMKV): Código síncrono, sem async/await
+        storage.set('@usuario_email', email.trim());
         
         setCarregando(false);
         
         // Pula para a tela Home (limpando o histórico para não voltar pro login)
         navigation.replace('Home');
-      }, 1500); // Fica 1.5 segundos na tela de "Conectando..."
+      }, 1500); 
       
     } catch (error) {
       setCarregando(false);
-      Alert.alert("Erro", "Não foi possível realizar o login.");
+      mostrarAlerta("Erro", "Não foi possível realizar o login.");
     }
   };
 
@@ -77,13 +87,14 @@ export default function Login({ navigation }) {
           </TouchableOpacity>
 
           <View style={styles.footer}>
-            <TouchableOpacity onPress={() => Alert.alert('Em breve', 'Tela de recuperação em construção')}>
+            <TouchableOpacity onPress={() => mostrarAlerta('Em breve', 'Tela de recuperação em construção')}>
               <Text style={styles.linkText}>Esqueceu sua senha?</Text>
             </TouchableOpacity>
             
             <View style={styles.registerContainer}>
               <Text style={styles.textGray}>Não tem uma conta? </Text>
-              <TouchableOpacity onPress={() => Alert.alert('Em breve', 'Tela de cadastro em construção')}>
+              {/* Agora navega de verdade para a tela de Cadastro */}
+              <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
                 <Text style={styles.linkRegister}>Cadastre-se aqui</Text>
               </TouchableOpacity>
             </View>

@@ -10,7 +10,7 @@ import Home from './src/telas/home';
 import Projetos from './src/telas/projetos';
 import Calcular from './src/telas/calcular';
 import ProjetoDetalhes from './src/telas/projetodetalhes';
-
+import Cadastro from './src/telas/cadastro';
 
 function TelaTemporaria({ rota }) {
   return (
@@ -100,6 +100,13 @@ export default function App() {
         <Stack.Screen 
           name="Login" 
           component={Login} 
+          options={{ headerShown: false }} 
+        />
+
+        {/* --- TELA DE CADASTRO */}
+        <Stack.Screen 
+          name="Cadastro" 
+          component={Cadastro} 
           options={{ headerShown: false }} 
         />
         
