@@ -1,3 +1,4 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -13,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Projetos({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [projetos, setProjetos] = useState([]);
   const [novoProjeto, setNovoProjeto] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -24,21 +26,20 @@ export default function Projetos({ navigation }) {
 
   // 1. CARREGAR PROJETOS DO BANCO LOCAL
   useEffect(() => {
+    const carregarProjetos = async () => {
+      try {
+        const dados = await AsyncStorage.getItem('@meus_projetos');
+        if (dados !== null) {
+          setProjetos(JSON.parse(dados));
+        }
+      } catch (_e) {
+        Alert.alert("Erro", "Não foi possível carregar as obras.");
+      } finally {
+        setCarregando(false);
+      }
+    };
     carregarProjetos();
   }, []);
-
-  const carregarProjetos = async () => {
-    try {
-      const dados = await AsyncStorage.getItem('@meus_projetos');
-      if (dados !== null) {
-        setProjetos(JSON.parse(dados));
-      }
-    } catch (e) {
-      Alert.alert("Erro", "Não foi possível carregar as obras.");
-    } finally {
-      setCarregando(false);
-    }
-  };
 
   // 2. CRIAR NOVO PROJETO
   const criarProjeto = async () => {
@@ -58,7 +59,7 @@ export default function Projetos({ navigation }) {
       await AsyncStorage.setItem('@meus_projetos', JSON.stringify(novaLista));
       setProjetos(novaLista);
       setNovoProjeto("");
-    } catch (e) {
+    } catch (_e) {
       Alert.alert("Erro", "Não foi possível salvar a obra.");
     }
   };
@@ -84,7 +85,7 @@ export default function Projetos({ navigation }) {
       await AsyncStorage.setItem('@meus_projetos', JSON.stringify(listaAtualizada));
       setProjetos(listaAtualizada);
       setProjetoEditando(null);
-    } catch (e) {
+    } catch (_e) {
       Alert.alert("Erro", "Não foi possível atualizar a obra.");
     }
   };
@@ -96,7 +97,7 @@ export default function Projetos({ navigation }) {
       await AsyncStorage.setItem('@meus_projetos', JSON.stringify(listaFiltrada));
       setProjetos(listaFiltrada);
       setProjetoConfirmarExclusao(null);
-    } catch (e) {
+    } catch (_e) {
       Alert.alert("Erro", "Não foi possível excluir a obra.");
     }
   };
@@ -118,11 +119,11 @@ export default function Projetos({ navigation }) {
   return (
     <View style={styles.container}>
       {/* NOVO TOPO: Tarja Preta */}
-      <View style={styles.blackHeader}>
+      <View style={[styles.blackHeader, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Meus Projetos</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* FORMULÁRIO DE CRIAÇÃO */}
         <View style={styles.createCard}>
@@ -179,7 +180,7 @@ export default function Projetos({ navigation }) {
               projetoConfirmarExclusao === projeto.id ? (
                 <View style={styles.deleteMode}>
                   <Text style={styles.deleteWarning}>
-                    A obra "{projeto.titulo}" será apagada. Confirmar?
+                    A obra &quot;{projeto.titulo}&quot; será apagada. Confirmar?
                   </Text>
                   <View style={styles.editActions}>
                     <TouchableOpacity style={styles.btnCancel} onPress={() => setProjetoConfirmarExclusao(null)}>
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fafafa' },
   blackHeader: {
     backgroundColor: '#18181b',
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
     alignItems: 'center',
     borderBottomWidth: 4,
@@ -263,6 +264,7 @@ const styles = StyleSheet.create({
   cardDesc: { color: '#71717a', marginBottom: 12 },
   inputRow: { flexDirection: 'row', gap: 8 },
   input: {
+    minWidth: 0,
     flex: 1,
     backgroundColor: '#f4f4f5',
     borderWidth: 1,

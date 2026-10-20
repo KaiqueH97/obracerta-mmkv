@@ -1,4 +1,5 @@
 import React from 'react';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -27,8 +28,10 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MenuPrincipal() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
+      id="MenuPrincipal"
       screenOptions={{
         headerShown: false, // Esconde o cabeçalho padrão
         tabBarActiveTintColor: '#ea580c', // Cor Laranja do Obra Certa para a aba ativa
@@ -37,9 +40,9 @@ function MenuPrincipal() {
           backgroundColor: '#ffffff',
           borderTopWidth: 1,
           borderTopColor: '#f4f4f5',
-          paddingBottom: 8,
+          paddingBottom: Math.max(insets.bottom, 8),
           paddingTop: 8,
-          height: 60,
+          height: 64 + Math.max(insets.bottom, 8),
         },
         tabBarLabelStyle: {
           fontSize: 10,
@@ -47,45 +50,45 @@ function MenuPrincipal() {
         }
       }}
     >
-      <Tab.Screen 
-        name="HomeTab" 
-        component={Home} 
-        options={{ 
+      <Tab.Screen
+        name="HomeTab"
+        component={Home}
+        options={{
           tabBarLabel: 'Início',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="view-dashboard" size={24} color={color} />
-        }} 
+        }}
       />
-      <Tab.Screen 
-        name="ProjetosTab" 
+      <Tab.Screen
+        name="ProjetosTab"
         component={Projetos}
-        options={{ 
+        options={{
           tabBarLabel: 'Projetos',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="folder-account" size={24} color={color} />
-        }} 
+        }}
       />
-      <Tab.Screen 
-        name="CalcularTab" 
+      <Tab.Screen
+        name="CalcularTab"
         component={Calcular}
-        options={{ 
+        options={{
           tabBarLabel: 'Calcular',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="calculator" size={24} color={color} />
-        }} 
+        }}
       />
-      <Tab.Screen 
-        name="EquipeTab" 
-        component={() => <TelaTemporaria rota="Equipe" />} 
-        options={{ 
+      <Tab.Screen
+        name="EquipeTab"
+        component={() => <TelaTemporaria rota="Equipe" />}
+        options={{
           tabBarLabel: 'Equipe',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="account-group" size={24} color={color} />
-        }} 
+        }}
       />
-      <Tab.Screen 
-        name="PerfilTab" 
-        component={() => <TelaTemporaria rota="Perfil" />} 
-        options={{ 
+      <Tab.Screen
+        name="PerfilTab"
+        component={() => <TelaTemporaria rota="Perfil" />}
+        options={{
           tabBarLabel: 'Perfil',
           tabBarIcon: ({ color }) => <MaterialCommunityIcons name="cog" size={24} color={color} />
-        }} 
+        }}
       />
     </Tab.Navigator>
   );
@@ -93,51 +96,57 @@ function MenuPrincipal() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        
-        {/* Tela de Entrada (Fora do Menu) */}
-        <Stack.Screen 
-          name="Login" 
-          component={Login} 
-          options={{ headerShown: false }} 
-        />
+    <SafeAreaProvider>
+      <View style={{ flex: 1, backgroundColor: '#fafafa' }}>
+        <View style={{ flex: 1, width: '100%', minHeight: 0 }}>
+          <NavigationContainer>
+            <Stack.Navigator id="Principal" initialRouteName="Login">
 
-        {/* --- TELA DE CADASTRO */}
-        <Stack.Screen 
-          name="Cadastro" 
-          component={Cadastro} 
-          options={{ headerShown: false }} 
-        />
-        
-        {/* Entrou no sistema, carrega o Layout com o Menu de Rodapé! */}
-        <Stack.Screen 
-          name="Home" 
-          component={MenuPrincipal} 
-          options={{ headerShown: false }} 
-        />
+              {/* Tela de Entrada (Fora do Menu) */}
+              <Stack.Screen
+                name="Login"
+                component={Login}
+                options={{ headerShown: false }}
+              />
 
-        {/* Tela de Projetos */}
-        <Stack.Screen 
-          name="Projetos" 
-          component={Projetos} 
-          options={{ title: 'Meus Projetos' }} 
-        />
+              {/* --- TELA DE CADASTRO */}
+              <Stack.Screen
+                name="Cadastro"
+                component={Cadastro}
+                options={{ headerShown: false }}
+              />
 
-        {/* Tela de Calcular / Nova Medição */}
-        <Stack.Screen 
-          name="Calcular" 
-          component={Calcular} 
-          options={{ title: 'Nova Medição' }} 
-        />
+              {/* Entrou no sistema, carrega o Layout com o Menu de Rodapé! */}
+              <Stack.Screen
+                name="Home"
+                component={MenuPrincipal}
+                options={{ headerShown: false }}
+              />
 
-        <Stack.Screen 
-          name="ProjetoDetalhes" 
-          component={ProjetoDetalhes} 
-          options={{ headerShown: false }} 
-        />
-        
-      </Stack.Navigator>
-    </NavigationContainer>
+              {/* Tela de Projetos */}
+              <Stack.Screen
+                name="Projetos"
+                component={Projetos}
+                options={{ title: 'Meus Projetos' }}
+              />
+
+              {/* Tela de Calcular / Nova Medição */}
+              <Stack.Screen
+                name="Calcular"
+                component={Calcular}
+                options={{ title: 'Nova Medição' }}
+              />
+
+              <Stack.Screen
+                name="ProjetoDetalhes"
+                component={ProjetoDetalhes}
+                options={{ headerShown: false }}
+              />
+
+            </Stack.Navigator>
+          </NavigationContainer>
+        </View>
+      </View>
+    </SafeAreaProvider>
   );
 }

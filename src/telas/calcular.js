@@ -1,3 +1,5 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useResponsiveLayout from '../hooks/useResponsiveLayout';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
@@ -20,6 +22,8 @@ const OPCOES_MATERIAIS = {
 };
 
 export default function Calcular({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { compact } = useResponsiveLayout();
   const [superficie, setSuperficie] = useState("");
   const [material, setMaterial] = useState("");
   const [medidas, setMedidas] = useState([{ id: 1, altura: "", largura: "" }]);
@@ -35,17 +39,16 @@ export default function Calcular({ navigation }) {
 
   // Carrega os projetos salvos no celular para popular o Picker final
   useEffect(() => {
+    const carregarProjetos = async () => {
+      try {
+        const dados = await AsyncStorage.getItem('@meus_projetos');
+        if (dados) setProjetos(JSON.parse(dados));
+      } catch (e) {
+        console.error("Erro ao carregar projetos", e);
+      }
+    };
     carregarProjetos();
   }, []);
-
-  const carregarProjetos = async () => {
-    try {
-      const dados = await AsyncStorage.getItem('@meus_projetos');
-      if (dados) setProjetos(JSON.parse(dados));
-    } catch (e) {
-      console.error("Erro ao carregar projetos", e);
-    }
-  };
 
   /* ================= LÓGICAS DA CALCULADORA ================= */
   const adicionarMedida = () => {
@@ -144,16 +147,16 @@ export default function Calcular({ navigation }) {
       setLarguraPiso("");
       navigation.navigate('ProjetosTab'); // Volta pra aba de projetos
 
-    } catch (e) {
+    } catch (_e) {
       Alert.alert("Erro", "Não foi possível salvar no projeto.");
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.container}>
+    <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={[styles.scrollContent, { width: '100%', maxWidth: 760, alignSelf: 'center' }]} showsVerticalScrollIndicator={false} style={styles.container}>
       
       {/* HEADER */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.iconBox}>
           <MaterialCommunityIcons name="calculator-variant" size={28} color="#ea580c" />
         </View>
@@ -203,7 +206,7 @@ export default function Calcular({ navigation }) {
         {superficie === "piso" && (
           <View style={styles.boxOpcional}>
             <Text style={styles.boxTitle}>Dimensões da Peça em cm (Opcional)</Text>
-            <View style={styles.row}>
+            <View style={[styles.row, compact && { flexDirection: 'column', alignItems: 'stretch' }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.labelSmall}>Comprimento</Text>
                 <TextInput style={styles.input} keyboardType="numeric" value={comprimentoPiso} onChangeText={setComprimentoPiso} placeholder="Ex: 60" />
@@ -226,7 +229,7 @@ export default function Calcular({ navigation }) {
         </View>
 
         {medidas.map((medida, index) => (
-          <View key={medida.id} style={styles.medidaRow}>
+          <View key={medida.id} style={[styles.medidaRow, compact && { flexDirection: 'column', alignItems: 'stretch' }]}>
             <View style={{ flex: 1 }}>
               <Text style={styles.labelSmall}>Altura (m)</Text>
               <TextInput style={styles.input} keyboardType="numeric" value={medida.altura} onChangeText={(v) => atualizarMedida(medida.id, 'altura', v)} placeholder="Ex: 3" />
@@ -318,7 +321,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f4f5' },
   scrollContent: { paddingBottom: 100 },
   header: {
-    backgroundColor: '#fff', padding: 20, paddingTop: 50,
+    backgroundColor: '#fff', padding: 20, paddingTop: 20,
     flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderColor: '#e4e4e7'
   },
   iconBox: { backgroundColor: '#ffedd5', padding: 10, borderRadius: 12, marginRight: 16 },
@@ -335,9 +338,10 @@ const styles = StyleSheet.create({
   boxOpcional: { backgroundColor: '#ffedd5', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#fdba74', marginBottom: 16 },
   boxTitle: { fontSize: 12, fontWeight: 'bold', color: '#c2410c', marginBottom: 8 },
   
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 8, padding: 12, fontSize: 16 },
+  input: {
+    minWidth: 0, backgroundColor: '#fff', borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 8, padding: 12, fontSize: 16 },
   
-  medicoesHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  medicoesHeader: { flexWrap: 'wrap', gap: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   btnNovaArea: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffedd5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, gap: 4 },
   btnNovaAreaText: { color: '#c2410c', fontWeight: 'bold', fontSize: 12 },
   
@@ -346,7 +350,7 @@ const styles = StyleSheet.create({
   
   inputPrecoContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#a7f3d0', borderRadius: 8, paddingHorizontal: 12 },
   moeda: { color: '#047857', fontWeight: 'bold', marginRight: 8 },
-  inputPreco: { flex: 1, paddingVertical: 12, fontSize: 16, fontWeight: 'bold', textAlign: 'right' },
+  inputPreco: { minWidth: 0, flex: 1, paddingVertical: 12, fontSize: 16, fontWeight: 'bold', textAlign: 'right' },
   
   btnCalcular: { flexDirection: 'row', backgroundColor: '#18181b', padding: 16, borderRadius: 12, justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 8 },
   btnCalcularText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
@@ -355,7 +359,7 @@ const styles = StyleSheet.create({
   resultadoHeader: { backgroundColor: '#ecfdf5', padding: 16, flexDirection: 'row', alignItems: 'center', gap: 8, borderBottomWidth: 1, borderColor: '#d1fae5' },
   resultadoTitle: { fontSize: 18, fontWeight: 'bold', color: '#065f46' },
   resultadoMaterial: { fontSize: 12, fontWeight: 'bold', color: '#047857', marginTop: 16, marginHorizontal: 16 },
-  rowResult: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginHorizontal: 16 },
+  rowResult: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'baseline', gap: 8, marginHorizontal: 16 },
   resultadoValor: { fontSize: 48, fontWeight: '900', color: '#022c22' },
   resultadoUnidade: { fontSize: 20, fontWeight: 'bold', color: '#022c22' },
   resultadoArea: { fontSize: 12, color: '#047857', marginHorizontal: 16, marginBottom: 16, fontWeight: '500' },
@@ -364,7 +368,7 @@ const styles = StyleSheet.create({
   pecasTitle: { fontSize: 12, fontWeight: 'bold', color: '#065f46' },
   pecasValor: { fontSize: 20, fontWeight: '900', color: '#022c22' },
   
-  custoBox: { backgroundColor: '#059669', padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  custoBox: { flexWrap: 'wrap', gap: 8, backgroundColor: '#059669', padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   custoTitle: { color: '#d1fae5', fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase' },
   custoValor: { color: '#fff', fontWeight: '900', fontSize: 24 },
 

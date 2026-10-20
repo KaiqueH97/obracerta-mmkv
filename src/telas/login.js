@@ -1,3 +1,4 @@
+import AuthLayout from '../components/AuthLayout';
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, Alert } from "react-native";
 import { storage } from '../storage/storage'; // Importando a instância do MMKV
@@ -37,14 +38,14 @@ export default function Login({ navigation }) {
         navigation.replace('Home');
       }, 1500); 
       
-    } catch (error) {
+    } catch (_error) {
       setCarregando(false);
       mostrarAlerta("Erro", "Não foi possível realizar o login.");
     }
   };
 
   return (
-    <View style={styles.main}>
+    <AuthLayout>
       <View style={styles.card}>
         <Text style={styles.title}>Obra Certa</Text>
 
@@ -101,7 +102,7 @@ export default function Login({ navigation }) {
           </View>
         </View>
       </View>
-    </View>
+    </AuthLayout>
   );
 }
 
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     backgroundColor: '#ffffff',
-    padding: 32,
+    padding: 24,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e5e7eb',
@@ -188,6 +189,8 @@ const styles = StyleSheet.create({
   },
   registerContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     marginTop: 8,
   },
   textGray: {

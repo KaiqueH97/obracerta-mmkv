@@ -1,11 +1,13 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useResponsiveLayout from '../hooks/useResponsiveLayout';
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
   Alert,
   ActivityIndicator,
   Linking
@@ -14,6 +16,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ProjetoDetalhes({ route, navigation }) {
+  const insets = useSafeAreaInsets();
+  const { compact } = useResponsiveLayout();
   // Pega o ID e o Título passados pela tela de Projetos
   const { id, titulo } = route.params;
 
@@ -30,7 +34,7 @@ export default function ProjetoDetalhes({ route, navigation }) {
   const [nomeMaterial, setNomeMaterial] = useState('');
   const [qtdMaterial, setQtdMaterial] = useState('');
   const [custoMaterial, setCustoMaterial] = useState('');
-  
+
   const [tipoTransacao, setTipoTransacao] = useState('RECEBIMENTO');
   const [descTransacao, setDescTransacao] = useState('');
   const [valorTransacao, setValorTransacao] = useState('');
@@ -41,26 +45,25 @@ export default function ProjetoDetalhes({ route, navigation }) {
   const keyCaixa = `@caixa_${id}`;
 
   useEffect(() => {
+    const carregarDadosDaObra = async () => {
+      try {
+        const [dadosMat, dadosTar, dadosCai] = await Promise.all([
+          AsyncStorage.getItem(keyMateriais),
+          AsyncStorage.getItem(keyTarefas),
+          AsyncStorage.getItem(keyCaixa)
+        ]);
+
+        if (dadosMat) setMateriais(JSON.parse(dadosMat));
+        if (dadosTar) setTarefas(JSON.parse(dadosTar));
+        if (dadosCai) setTransacoes(JSON.parse(dadosCai));
+      } catch (_e) {
+        Alert.alert('Erro', 'Não foi possível carregar os dados desta obra.');
+      } finally {
+        setCarregando(false);
+      }
+    };
     carregarDadosDaObra();
-  }, []);
-
-  const carregarDadosDaObra = async () => {
-    try {
-      const [dadosMat, dadosTar, dadosCai] = await Promise.all([
-        AsyncStorage.getItem(keyMateriais),
-        AsyncStorage.getItem(keyTarefas),
-        AsyncStorage.getItem(keyCaixa)
-      ]);
-
-      if (dadosMat) setMateriais(JSON.parse(dadosMat));
-      if (dadosTar) setTarefas(JSON.parse(dadosTar));
-      if (dadosCai) setTransacoes(JSON.parse(dadosCai));
-    } catch (e) {
-      Alert.alert('Erro', 'Não foi possível carregar os dados desta obra.');
-    } finally {
-      setCarregando(false);
-    }
-  };
+  }, [keyMateriais, keyTarefas, keyCaixa]);
 
   /* ================== MATERIAIS ================== */
   const adicionarMaterial = async () => {
@@ -79,7 +82,7 @@ export default function ProjetoDetalhes({ route, navigation }) {
     const novaLista = [novoItem, ...materiais];
     setMateriais(novaLista);
     await AsyncStorage.setItem(keyMateriais, JSON.stringify(novaLista));
-    
+
     setNomeMaterial('');
     setQtdMaterial('');
     setCustoMaterial('');
@@ -97,14 +100,14 @@ export default function ProjetoDetalhes({ route, navigation }) {
 
     const novaTar = { id: Date.now().toString(), nome: novaTarefa, concluida: false };
     const novaLista = [...tarefas, novaTar];
-    
+
     setTarefas(novaLista);
     await AsyncStorage.setItem(keyTarefas, JSON.stringify(novaLista));
     setNovaTarefa('');
   };
 
   const alternarConclusaoTarefa = async (idTarefa) => {
-    const novaLista = tarefas.map(t => 
+    const novaLista = tarefas.map(t =>
       t.id === idTarefa ? { ...t, concluida: !t.concluida } : t
     );
     setTarefas(novaLista);
@@ -160,10 +163,10 @@ export default function ProjetoDetalhes({ route, navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+
       {/* HEADER DA OBRA */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <TouchableOpacity style={styles.btnVoltar} onPress={() => navigation.goBack()}>
           <MaterialCommunityIcons name="arrow-left" size={24} color="#18181b" />
         </TouchableOpacity>
@@ -174,7 +177,7 @@ export default function ProjetoDetalhes({ route, navigation }) {
       </View>
 
       {/* DASHBOARD FINANCEIRO */}
-      <View style={styles.dashGrid}>
+      <View style={[styles.dashGrid, compact && { flexDirection: 'column' }]}>
         <View style={styles.dashCard}>
           <Text style={styles.dashLabel}>Entradas</Text>
           <Text style={styles.dashValuePos}>R$ {totalRecebido.toFixed(2)}</Text>
@@ -189,24 +192,24 @@ export default function ProjetoDetalhes({ route, navigation }) {
 
       {/* MENU DE ABAS */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
-          style={[styles.tabBtn, abaAtiva === 'materiais' && styles.tabAtiva]}
+        <TouchableOpacity
+          style={[styles.tabBtn, compact && { flexDirection: 'column' }, abaAtiva === 'materiais' && styles.tabAtiva]}
           onPress={() => setAbaAtiva('materiais')}
         >
           <MaterialCommunityIcons name="cart-outline" size={20} color={abaAtiva === 'materiais' ? '#ea580c' : '#71717a'} />
           <Text style={[styles.tabText, abaAtiva === 'materiais' && {color: '#ea580c'}]}>Orçamento</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabBtn, abaAtiva === 'caixa' && styles.tabAtiva]}
+
+        <TouchableOpacity
+          style={[styles.tabBtn, compact && { flexDirection: 'column' }, abaAtiva === 'caixa' && styles.tabAtiva]}
           onPress={() => setAbaAtiva('caixa')}
         >
           <MaterialCommunityIcons name="wallet-outline" size={20} color={abaAtiva === 'caixa' ? '#10b981' : '#71717a'} />
           <Text style={[styles.tabText, abaAtiva === 'caixa' && {color: '#10b981'}]}>Caixa</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabBtn, abaAtiva === 'tarefas' && styles.tabAtiva]}
+
+        <TouchableOpacity
+          style={[styles.tabBtn, compact && { flexDirection: 'column' }, abaAtiva === 'tarefas' && styles.tabAtiva]}
           onPress={() => setAbaAtiva('tarefas')}
         >
           <MaterialCommunityIcons name="checkbox-marked-outline" size={20} color={abaAtiva === 'tarefas' ? '#2563eb' : '#71717a'} />
@@ -214,16 +217,16 @@ export default function ProjetoDetalhes({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollArea} showsVerticalScrollIndicator={false}>
+      <View style={styles.scrollArea}>
 
         {/* ================= CONTEÚDO: MATERIAIS ================= */}
         {abaAtiva === 'materiais' && (
           <View style={styles.sectionCard}>
-            <View style={styles.formRow}>
+            <View style={[styles.formRow, compact && { flexDirection: 'column' }]}>
               <TextInput style={[styles.input, {flex: 2}]} placeholder="Material (Ex: Cimento)" value={nomeMaterial} onChangeText={setNomeMaterial} />
               <TextInput style={[styles.input, {flex: 1}]} placeholder="Qtd" value={qtdMaterial} onChangeText={setQtdMaterial} />
             </View>
-            <View style={styles.formRow}>
+            <View style={[styles.formRow, compact && { flexDirection: 'column' }]}>
               <TextInput style={[styles.input, {flex: 1}]} placeholder="Custo Total (Ex: 150.00)" keyboardType="numeric" value={custoMaterial} onChangeText={setCustoMaterial} />
               <TouchableOpacity style={styles.btnAddMaterial} onPress={adicionarMaterial}>
                 <Text style={styles.btnAddText}>Adicionar</Text>
@@ -261,13 +264,13 @@ export default function ProjetoDetalhes({ route, navigation }) {
         {abaAtiva === 'caixa' && (
           <View style={styles.sectionCard}>
             <View style={styles.toggleRow}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.toggleBtn, tipoTransacao === 'RECEBIMENTO' && styles.toggleBtnActiveReceb]}
                 onPress={() => setTipoTransacao('RECEBIMENTO')}
               >
                 <Text style={[styles.toggleText, tipoTransacao === 'RECEBIMENTO' && {color: '#fff'}]}>Entrada</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.toggleBtn, tipoTransacao === 'PAGAMENTO' && styles.toggleBtnActivePag]}
                 onPress={() => setTipoTransacao('PAGAMENTO')}
               >
@@ -275,7 +278,7 @@ export default function ProjetoDetalhes({ route, navigation }) {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.formRow}>
+            <View style={[styles.formRow, compact && { flexDirection: 'column' }]}>
               <TextInput style={[styles.input, {flex: 2}]} placeholder="Descrição" value={descTransacao} onChangeText={setDescTransacao} />
               <TextInput style={[styles.input, {flex: 1}]} placeholder="R$" keyboardType="numeric" value={valorTransacao} onChangeText={setValorTransacao} />
             </View>
@@ -290,10 +293,10 @@ export default function ProjetoDetalhes({ route, navigation }) {
             ) : (
               transacoes.map(t => (
                 <View key={t.id} style={styles.listItem}>
-                  <MaterialCommunityIcons 
-                    name={t.tipo === 'RECEBIMENTO' ? 'trending-up' : 'trending-down'} 
-                    size={24} 
-                    color={t.tipo === 'RECEBIMENTO' ? '#10b981' : '#ef4444'} 
+                  <MaterialCommunityIcons
+                    name={t.tipo === 'RECEBIMENTO' ? 'trending-up' : 'trending-down'}
+                    size={24}
+                    color={t.tipo === 'RECEBIMENTO' ? '#10b981' : '#ef4444'}
                   />
                   <View style={{flex: 1, marginLeft: 12}}>
                     <Text style={styles.itemTitle}>{t.descricao}</Text>
@@ -313,12 +316,12 @@ export default function ProjetoDetalhes({ route, navigation }) {
         {/* ================= CONTEÚDO: TAREFAS ================= */}
         {abaAtiva === 'tarefas' && (
           <View style={styles.sectionCard}>
-            <View style={styles.formRow}>
-              <TextInput 
-                style={[styles.input, {flex: 1}]} 
-                placeholder="O que precisa ser feito?" 
-                value={novaTarefa} 
-                onChangeText={setNovaTarefa} 
+            <View style={[styles.formRow, compact && { flexDirection: 'column' }]}>
+              <TextInput
+                style={[styles.input, {flex: 1}]}
+                placeholder="O que precisa ser feito?"
+                value={novaTarefa}
+                onChangeText={setNovaTarefa}
               />
               <TouchableOpacity style={styles.btnAddTarefa} onPress={adicionarTarefa}>
                 <MaterialCommunityIcons name="plus" size={24} color="#fff" />
@@ -331,8 +334,8 @@ export default function ProjetoDetalhes({ route, navigation }) {
               <Text style={styles.emptyText}>Sua lista está vazia.</Text>
             ) : (
               tarefas.map(t => (
-                <TouchableOpacity 
-                  key={t.id} 
+                <TouchableOpacity
+                  key={t.id}
                   style={[styles.taskItem, t.concluida && styles.taskItemConcluida]}
                   onPress={() => alternarConclusaoTarefa(t.id)}
                 >
@@ -348,30 +351,30 @@ export default function ProjetoDetalhes({ route, navigation }) {
           </View>
         )}
 
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, backgroundColor: '#f4f4f5' },
-  
+
   header: {
-    backgroundColor: '#fff', padding: 20, paddingTop: 50,
+    backgroundColor: '#fff', padding: 20, paddingTop: 20,
     flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderColor: '#e4e4e7'
   },
   btnVoltar: {
     width: 40, height: 40, backgroundColor: '#f4f4f5', borderRadius: 12,
     justifyContent: 'center', alignItems: 'center', marginRight: 12
   },
-  headerTextContainer: { flex: 1 },
+  headerTextContainer: { minWidth: 0, flex: 1 },
   tituloObra: { fontSize: 22, fontWeight: '900', color: '#18181b' },
   subTitulo: { fontSize: 13, color: '#71717a' },
 
   dashGrid: { flexDirection: 'row', padding: 16, gap: 12 },
-  dashCard: { 
-    flex: 1, backgroundColor: '#fff', padding: 16, borderRadius: 16, 
+  dashCard: {
+    flex: 1, backgroundColor: '#fff', padding: 16, borderRadius: 16,
     borderWidth: 1, borderColor: '#e4e4e7', elevation: 1
   },
   dashLabel: { fontSize: 12, fontWeight: 'bold', color: '#71717a', textTransform: 'uppercase' },
@@ -380,7 +383,7 @@ const styles = StyleSheet.create({
   dashValueNeg: { color: '#ef4444' },
 
   tabContainer: {
-    flexDirection: 'row', marginHorizontal: 16, backgroundColor: '#e4e4e7', 
+    flexDirection: 'row', marginHorizontal: 16, backgroundColor: '#e4e4e7',
     borderRadius: 12, padding: 4, marginBottom: 8
   },
   tabBtn: {
@@ -395,13 +398,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 16, padding: 16,
     borderWidth: 1, borderColor: '#e4e4e7'
   },
-  
+
   formRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   input: {
-    backgroundColor: '#f4f4f5', borderRadius: 8, paddingHorizontal: 12, 
+    minWidth: 0,
+    backgroundColor: '#f4f4f5', borderRadius: 8, paddingHorizontal: 12,
     height: 48, borderWidth: 1, borderColor: '#d4d4d8', color: '#18181b'
   },
-  btnAddMaterial: { flex: 1, backgroundColor: '#ea580c', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  btnAddMaterial: { minHeight: 48, flex: 1, backgroundColor: '#ea580c', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   btnAddCaixa: { backgroundColor: '#10b981', height: 48, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   btnAddTarefa: { backgroundColor: '#2563eb', width: 48, height: 48, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   btnAddText: { color: '#fff', fontWeight: 'bold' },
@@ -420,7 +424,7 @@ const styles = StyleSheet.create({
   itemSub: { fontSize: 13, color: '#71717a', marginTop: 2 },
 
   btnWhatsApp: { flexDirection: 'row', backgroundColor: '#25D366', padding: 14, borderRadius: 12, justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 16 },
-  btnWhatsAppText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  btnWhatsAppText: { flexShrink: 1, color: '#fff', fontWeight: 'bold', fontSize: 16 },
 
   taskItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#e4e4e7', marginBottom: 8 },
   taskItemConcluida: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },

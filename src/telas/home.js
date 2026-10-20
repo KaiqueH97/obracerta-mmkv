@@ -1,3 +1,5 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useResponsiveLayout from '../hooks/useResponsiveLayout';
 import React from 'react';
 import { 
   View, 
@@ -9,6 +11,8 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function Home({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { compact, wide, desktop } = useResponsiveLayout();
   // Dados fixos apenas para visualização do Front-end (Mock)
   const metricas = {
     obrasAtivas: 2,
@@ -26,7 +30,7 @@ export default function Home({ navigation }) {
     <View style={styles.container}>
       
       {/* NOVO TOPO: Tarja Preta com Capacete */}
-      <View style={styles.blackHeader}>
+      <View style={[styles.blackHeader, { paddingTop: insets.top + 20 }]}>
         <MaterialCommunityIcons name="hard-hat" size={32} color="#ea580c" />
         <Text style={styles.headerBrand}>
           Obra <Text style={styles.headerBrandHighlight}>Certa</Text>
@@ -37,7 +41,7 @@ export default function Home({ navigation }) {
         O contentContainerStyle é o segredo para o ScrollView rolar! 
         Ele aplica o padding por dentro do conteúdo, permitindo chegar até o fim.
       */}
-      <ScrollView 
+      <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets
         style={styles.scrollArea} 
         contentContainerStyle={styles.scrollContent} 
         showsVerticalScrollIndicator={false}
@@ -50,9 +54,9 @@ export default function Home({ navigation }) {
         </View>
 
         {/* ACESSO RÁPIDO */}
-        <View style={styles.quickAccess}>
+        <View style={[styles.quickAccess, wide && { flexDirection: 'row' }]}>
           <TouchableOpacity 
-            style={[styles.btnAction, { backgroundColor: '#ea580c' }]}
+            style={[styles.btnAction, wide && { flex: 1 }, { backgroundColor: '#ea580c' }]}
             onPress={() => navigation.navigate('CalcularTab')}
           >
             {/* Ícone de Calculadora adicionado aqui */}
@@ -61,7 +65,7 @@ export default function Home({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.btnAction, { backgroundColor: '#27272a' }]}
+            style={[styles.btnAction, wide && { flex: 1 }, { backgroundColor: '#27272a' }]}
             onPress={() => navigation.navigate('ProjetosTab')}
           >
             <MaterialCommunityIcons name="folder-account" size={24} color="#fff" />
@@ -71,7 +75,7 @@ export default function Home({ navigation }) {
 
         {/* CARDS DE MÉTRICAS */}
         <View style={styles.gridContainer}>
-          <View style={styles.card}>
+          <View style={[styles.card, { width: compact ? '100%' : desktop ? '23.5%' : '48%' }]}>
             <View style={[styles.iconBox, { backgroundColor: '#dbeafe' }]}>
               <MaterialCommunityIcons name="domain" size={24} color="#2563eb" />
             </View>
@@ -79,7 +83,7 @@ export default function Home({ navigation }) {
             <Text style={styles.cardValue}>{metricas.obrasAtivas}</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { width: compact ? '100%' : desktop ? '23.5%' : '48%' }]}>
             <View style={[styles.iconBox, { backgroundColor: '#d1fae5' }]}>
               <MaterialCommunityIcons name="check-decagram" size={24} color="#059669" />
             </View>
@@ -87,7 +91,7 @@ export default function Home({ navigation }) {
             <Text style={styles.cardValue}>{metricas.tarefasConcluidas}</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { width: compact ? '100%' : desktop ? '23.5%' : '48%' }]}>
             <View style={[styles.iconBox, { backgroundColor: '#ffedd5' }]}>
               <MaterialCommunityIcons name="alert-circle-outline" size={24} color="#ea580c" />
             </View>
@@ -95,7 +99,7 @@ export default function Home({ navigation }) {
             <Text style={[styles.cardValue, { color: '#ea580c' }]}>{metricas.tarefasPendentes}</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { width: compact ? '100%' : desktop ? '23.5%' : '48%' }]}>
             <View style={[styles.iconBox, { backgroundColor: '#f3e8ff' }]}>
               <MaterialCommunityIcons name="currency-usd" size={24} color="#9333ea" />
             </View>
@@ -141,7 +145,7 @@ const styles = StyleSheet.create({
   },
   blackHeader: {
     backgroundColor: '#18181b', // Preto escuro/chumbo
-    paddingTop: 50, // Espaço para não ficar embaixo do relógio do celular
+    paddingTop: 20, // Espaço para não ficar embaixo do relógio do celular
     paddingBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -240,6 +244,8 @@ const styles = StyleSheet.create({
     borderColor: '#f4f4f5',
   },
   sectionHeader: {
+    flexWrap: 'wrap',
+    gap: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -264,6 +270,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f4f4f5',
   },
   projectInfo: {
+    minWidth: 0,
+    marginRight: 12,
     flex: 1,
   },
   projectName: {

@@ -1,3 +1,4 @@
+import AuthLayout from '../components/AuthLayout';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
 import { storage } from '../storage/storage'; // Importando o MMKV
@@ -44,7 +45,7 @@ export default function Cadastro({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <AuthLayout>
       <View style={styles.card}>
         <Text style={styles.titulo}>Criar Conta</Text>
 
@@ -83,7 +84,7 @@ export default function Cadastro({ navigation }) {
           <Text style={styles.textoLink}>Já tem uma conta? <Text style={styles.textoLinkBold}>Faça Login</Text></Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </AuthLayout>
   );
 }
 
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     backgroundColor: '#ffffff',
-    padding: 32,
+    padding: 24,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
